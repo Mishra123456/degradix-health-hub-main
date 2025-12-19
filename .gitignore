@@ -1,0 +1,22 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
+
+# Large data
+data/full_dataset/
+*.h5
+
+# Logs
+*.log
+# Trained ML models
+backend/ml/*.joblib
+backend/ml/*.keras
+backend/ml/*.pkl
