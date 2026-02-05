@@ -11,6 +11,7 @@ import ClusteringPage from "./pages/ClusteringPage";
 import ReliabilityPage from "./pages/ReliabilityPage";
 import InsightsPage from "./pages/InsightsPage";
 import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,7 +21,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/upload" element={<UploadPage />} />
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/reliability" element={<ReliabilityPage />} />
           <Route path="/insights" element={<InsightsPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

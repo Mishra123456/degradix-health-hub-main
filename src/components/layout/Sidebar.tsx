@@ -11,7 +11,8 @@ import {
   Info,
   ChevronLeft,
   ChevronRight,
-  Cpu
+  Cpu,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { title: 'Pattern Clustering', href: '/clustering', icon: GitBranch },
   { title: 'Reliability', href: '/reliability', icon: Shield },
   { title: 'Insights', href: '/insights', icon: Lightbulb },
+  { title: 'Contact & Queries', href: '/contact', icon: MessageSquare },
   { title: 'About', href: '/about', icon: Info },
 ];
 
@@ -98,16 +100,7 @@ export function Sidebar() {
         )}
       </button>
 
-      {/* Footer */}
-      {!collapsed && (
-        <div className="absolute bottom-4 left-4 right-4">
-          <div className="rounded-lg bg-sidebar-accent/50 p-3">
-            <p className="text-xs text-sidebar-foreground/60">
-              Powered by ML & Deep Learning
-            </p>
-          </div>
-        </div>
-      )}
+
     </aside>
   );
 }

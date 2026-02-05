@@ -175,6 +175,7 @@ export default function Dashboard() {
           title="Dashboard"
           description="Upload data to view machine analytics"
         />
+
       </MainLayout>
     );
   }
@@ -243,6 +244,8 @@ export default function Dashboard() {
         <div className="lg:col-span-3 dashboard-card">
           <ClusterChart data={labeledClusters} />
         </div>
+
+
       </div>
     </MainLayout>
   );
