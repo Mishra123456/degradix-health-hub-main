@@ -9,22 +9,28 @@ Built with **FastAPI** (Backend) and **React + Vite** (Frontend).
 ## 📸 Screenshots
 
 *Add your screenshots to an `images` folder in the root directory.*
+![UI1](public/d1.png)
+![UI2](public/d2.png)
+![UI3](public/d3.png)
 
 ### 📊 Dashboard
 *Real-time fleet monitoring and health analytics.*
-![Dashboard View](images/dashboard.png)
+![UI1](public/d4.png)
+![UI1](public/d5.png)
+![UI1](public/d6.png)
+![UI1](public/d7.png)
+![UI1](public/d8.png)
 
 ### 📩 Contact & Support
 *Dedicated support channel for engineering queries.*
-![Contact Page](images/contact.png)
+
 
 ### 📤 Data Upload
 *Seamless CSV upload for batch processing.*
-![Upload Page](images/upload.png)
+![UI1](public/d1.png)
 
 ### 💡 Insights & Clustering
 *Deep dive into machine behavior and failure patterns.*
-![Insights Analysis](images/insights.png)
 
 ---
 
