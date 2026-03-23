@@ -21,3 +21,4 @@ backend/ml/*.joblib
 backend/ml/*.keras
 backend/ml/*.pkl
 *.db
+backend/test_out/
