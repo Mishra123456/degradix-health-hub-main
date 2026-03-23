@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Upload,
@@ -12,9 +12,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Cpu,
-  MessageSquare
+  MessageSquare,
+  Timer,
+  LogOut,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 interface NavItem {
   title: string;
@@ -27,6 +31,7 @@ const navItems: NavItem[] = [
   { title: 'Upload Data', href: '/upload', icon: Upload },
   { title: 'Machine Health', href: '/health', icon: Activity },
   { title: 'Degradation Speed', href: '/degradation', icon: TrendingDown },
+  { title: 'RUL Prediction', href: '/rul', icon: Timer },
   { title: 'Pattern Clustering', href: '/clustering', icon: GitBranch },
   { title: 'Reliability', href: '/reliability', icon: Shield },
   { title: 'Insights', href: '/insights', icon: Lightbulb },
@@ -37,11 +42,18 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300',
+        'fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300 flex flex-col',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
@@ -61,7 +73,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-1 p-3">
+      <nav className="flex flex-col gap-1 p-3 flex-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
           return (
@@ -84,6 +96,43 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* User Section */}
+      {user && (
+        <div className="border-t border-sidebar-border p-3">
+          <div
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 mb-1',
+              collapsed && 'justify-center px-2'
+            )}
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sidebar-primary/20">
+              <User className="h-4 w-4 text-sidebar-primary" />
+            </div>
+            {!collapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-medium text-sidebar-foreground truncate">
+                  {user.username}
+                </span>
+                <span className="text-[10px] text-sidebar-foreground/50 truncate">
+                  {user.email}
+                </span>
+              </div>
+            )}
+          </div>
+          <button
+            onClick={handleLogout}
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium w-full',
+              'text-sidebar-foreground/60 hover:bg-red-500/10 hover:text-red-500 transition-all',
+              collapsed && 'justify-center px-2'
+            )}
+          >
+            <LogOut className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span>Logout</span>}
+          </button>
+        </div>
+      )}
+
       {/* Collapse Button */}
       <button
         onClick={() => setCollapsed(!collapsed)}
@@ -99,8 +148,6 @@ export function Sidebar() {
           <ChevronLeft className="h-4 w-4" />
         )}
       </button>
-
-
     </aside>
   );
 }
