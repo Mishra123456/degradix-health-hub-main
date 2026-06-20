@@ -27,6 +27,8 @@ class AnalysisHistory(Base):
     reliability = Column(Float, nullable=False)
     risk_level = Column(String(20), nullable=False)
     filename = Column(String(255), nullable=False)
+    health_explanation = Column(String, nullable=True)
+    rul_explanation = Column(String, nullable=True)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
 
 def get_db():

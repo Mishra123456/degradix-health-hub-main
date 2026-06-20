@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/ui/page-header";
 import { api } from "@/lib/api";
-import { Cpu, ShieldCheck, TrendingDown, HelpCircle } from "lucide-react";
+import { Cpu, ShieldCheck, TrendingDown, HelpCircle, Brain } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -236,6 +236,41 @@ export default function EvaluationPage() {
                   Represents the proportion of variance in the dependent variable that is predictable from the independent variables. A score of 1.0 indicates perfect prediction.
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Most Influential Sensors */}
+          <div className="dashboard-card">
+            <h3 className="text-md font-semibold text-foreground mb-2 flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Most Influential Sensors
+            </h3>
+            <p className="text-xs text-muted-foreground mb-6">
+              Top 10 sensors ranked by average absolute SHAP values across TreeSHAP feature attributions on Random Forest models.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-5">
+              {[
+                { rank: 1, sensor: "sensor_11", desc: "Core static pressure" },
+                { rank: 2, sensor: "sensor_4", desc: "Total temperature of LPC outlet" },
+                { rank: 3, sensor: "sensor_15", desc: "Physical core speed" },
+                { rank: 4, sensor: "sensor_8", desc: "Physical fan speed" },
+                { rank: 5, sensor: "sensor_12", desc: "Bypass ratio" },
+                { rank: 6, sensor: "sensor_7", desc: "Total pressure in bypass-duct" },
+                { rank: 7, sensor: "sensor_20", desc: "HPT coolant bleed flow" },
+                { rank: 8, sensor: "sensor_2", desc: "Total temperature at LPC outlet" },
+                { rank: 9, sensor: "sensor_13", desc: "LPT corrected speed" },
+                { rank: 10, sensor: "sensor_17", desc: "Engine pressure ratio" }
+              ].map((item) => (
+                <div key={item.rank} className="p-3 bg-muted/40 rounded-xl border border-border/30 flex items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm">
+                    {item.rank}
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="font-semibold text-sm text-foreground truncate">{item.sensor}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

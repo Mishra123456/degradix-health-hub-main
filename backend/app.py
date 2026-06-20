@@ -79,12 +79,22 @@ except Exception as e:
 # --------------------------------------------------
 # PYDANTIC RESPONSE SCHEMAS
 # --------------------------------------------------
+class ExplanationItem(BaseModel):
+    sensor: str
+    impact: float
+
 class CompletePredictionResponse(BaseModel):
     health_score: float
     predicted_rul: int
     risk_level: str
     reliability: float
     cluster: int
+    health_explanation: List[ExplanationItem]
+    rul_explanation: List[ExplanationItem]
+
+class ExplanationResponse(BaseModel):
+    health_explanation: List[ExplanationItem]
+    rul_explanation: List[ExplanationItem]
 
 class RulPredictionItem(BaseModel):
     engine_id: int
@@ -296,7 +306,11 @@ async def predict_health(file: UploadFile = File(...)):
     return results
 
 @app.post("/predict-complete", response_model=CompletePredictionResponse)
-async def predict_complete(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def predict_complete(
+    file: UploadFile = File(...),
+    engine_id: int = None,
+    db: Session = Depends(get_db)
+):
     """
     Executes a comprehensive health and RUL analysis for the uploaded CSV file.
     Saves the results of the latest cycle to the database log history.
@@ -315,13 +329,21 @@ async def predict_complete(file: UploadFile = File(...), db: Session = Depends(g
     health_scores = rf_health.predict(X_scaled)
     df_scaled["health"] = np.clip(health_scores, 0.0, 1.0)
     
-    # We will compute the results for the latest cycle of the first engine in the CSV file
-    first_engine_id = df_scaled["engine_id"].iloc[0]
-    engine_df = df_scaled[df_scaled["engine_id"] == first_engine_id].sort_values("cycle")
+    # We will compute the results for the latest cycle of the chosen engine
+    if engine_id is not None and engine_id in df_scaled["engine_id"].values:
+        target_engine_id = engine_id
+    else:
+        target_engine_id = df_scaled["engine_id"].iloc[0]
+        
+    engine_df = df_scaled[df_scaled["engine_id"] == target_engine_id].sort_values("cycle")
+    raw_engine_df = df[df["engine_id"] == target_engine_id].sort_values("cycle")
     
     latest_idx = len(engine_df) - 1
     latest_sensors = engine_df[sensors].values
     latest_cycle = int(engine_df["cycle"].iloc[latest_idx])
+    
+    # Extract the raw sensor values for SHAP engine input
+    latest_raw_sensors = raw_engine_df[sensors].values[latest_idx:latest_idx+1]
     
     # Compute RUL
     if latest_cycle > SEQ_LEN:
@@ -339,13 +361,20 @@ async def predict_complete(file: UploadFile = File(...), db: Session = Depends(g
     # Cluster (Default to 1, or dynamic based on simple criteria)
     cluster_id = 1
     
+    # Calculate SHAP Explanations using shap_engine
+    from ml.shap_engine import get_health_explanation, get_rul_explanation
+    health_explanation_list = get_health_explanation(latest_raw_sensors)
+    rul_explanation_list = get_rul_explanation(latest_raw_sensors)
+    
     # Create database entry
     analysis_record = AnalysisHistory(
         health_score=health_score,
         predicted_rul=rul_val,
         reliability=reliability,
         risk_level=risk_level,
-        filename=file.filename
+        filename=file.filename,
+        health_explanation=json.dumps(health_explanation_list),
+        rul_explanation=json.dumps(rul_explanation_list)
     )
     
     try:
@@ -362,7 +391,37 @@ async def predict_complete(file: UploadFile = File(...), db: Session = Depends(g
         predicted_rul=rul_val,
         risk_level=risk_level,
         reliability=reliability,
-        cluster=cluster_id
+        cluster=cluster_id,
+        health_explanation=health_explanation_list,
+        rul_explanation=rul_explanation_list
+    )
+
+@app.post("/explain", response_model=ExplanationResponse)
+async def explain(file: UploadFile = File(...), engine_id: int = None):
+    """
+    Returns predictions explanations (SHAP) without running full analytics dashboard logic.
+    """
+    verify_models_loaded()
+    df = load_csv(file)
+    sensors = sensor_columns(df)
+    
+    # Get the latest row of the specified or first engine
+    if engine_id is not None and engine_id in df["engine_id"].values:
+        target_engine_id = engine_id
+    else:
+        target_engine_id = df["engine_id"].iloc[0]
+        
+    engine_df = df[df["engine_id"] == target_engine_id].sort_values("cycle")
+    latest_idx = len(engine_df) - 1
+    latest_raw_sensors = engine_df[sensors].values[latest_idx:latest_idx+1]
+    
+    from ml.shap_engine import get_health_explanation, get_rul_explanation
+    health_exp = get_health_explanation(latest_raw_sensors)
+    rul_exp = get_rul_explanation(latest_raw_sensors)
+    
+    return ExplanationResponse(
+        health_explanation=health_exp,
+        rul_explanation=rul_exp
     )
 
 @app.get("/metrics", response_model=SystemMetricsResponse)

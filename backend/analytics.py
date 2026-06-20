@@ -101,8 +101,25 @@ def calculate_degradation_speed(health_history: List[float]) -> float:
     diffs = np.diff(health_history)
     return float(-np.mean(diffs))
 
+def calculate_health_explanation(sensors_raw: np.ndarray) -> List[Dict[str, Any]]:
+    """
+    Retrieves the SHAP explainability feature impact for the health score prediction.
+    """
+    from ml.shap_engine import get_health_explanation
+    last_row = sensors_raw[-1].reshape(1, -1)
+    return get_health_explanation(last_row)
+
+def calculate_rul_explanation(sensors_raw: np.ndarray) -> List[Dict[str, Any]]:
+    """
+    Retrieves the SHAP explainability feature impact for the RUL prediction.
+    """
+    from ml.shap_engine import get_rul_explanation
+    last_row = sensors_raw[-1].reshape(1, -1)
+    return get_rul_explanation(last_row)
+
 def get_complete_analytics(
     sensors_scaled: np.ndarray,
+    sensors_raw: np.ndarray,
     rf_health_model: Any,
     rf_rul_model: Any,
     lstm_rul_model: Optional[Any] = None,
@@ -112,28 +129,20 @@ def get_complete_analytics(
 ) -> Dict[str, Any]:
     """
     Executes the complete predictive analytics suite and returns a structured JSON-like dict.
-    
-    Args:
-        sensors_scaled: 2D numpy array of shape (N, 21) representing scaled sensor values.
-        rf_health_model: Pre-trained RandomForestRegressor model for health score.
-        rf_rul_model: Pre-trained RandomForestRegressor model for RUL.
-        lstm_rul_model: Pre-trained LSTM Keras model for RUL.
-        sequence_history: 2D numpy array of shape (SEQ_LEN, 21) representing scaled sequence history.
-        health_history: List of historical health scores.
-        cluster_id: Assigned machine cluster ID.
-        
-    Returns:
-        Dict[str, Any]: Structured JSON data with all prediction metrics.
     """
     health_score = calculate_health_score(sensors_scaled, rf_health_model)
     predicted_rul = calculate_rul(sensors_scaled, rf_rul_model, lstm_rul_model, sequence_history)
     reliability = calculate_reliability(health_score)
     risk_level = calculate_risk_level(predicted_rul)
+    health_explanation = calculate_health_explanation(sensors_raw)
+    rul_explanation = calculate_rul_explanation(sensors_raw)
     
     return {
         "health_score": round(health_score, 4),
         "predicted_rul": predicted_rul,
         "risk_level": risk_level,
         "reliability": reliability,
-        "cluster": cluster_id
+        "cluster": cluster_id,
+        "health_explanation": health_explanation,
+        "rul_explanation": rul_explanation
     }

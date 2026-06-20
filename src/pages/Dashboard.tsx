@@ -10,6 +10,17 @@ import { RulTrendChart } from "@/components/charts/RulTrendChart";
 import { MachineSelector } from "@/components/MachineSelector";
 import { Link } from "react-router-dom";
 import { Activity, TrendingDown, AlertTriangle, Server, Clock, Shield, Upload } from "lucide-react";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer, 
+  Cell, 
+  ReferenceLine 
+} from "recharts";
 
 import { api } from "@/lib/api";
 import { useAppData } from "@/context/AppContext";
@@ -47,6 +58,11 @@ type RulRow = {
   predicted_rul: number;
 };
 
+type ExplanationItem = {
+  sensor: string;
+  impact: number;
+};
+
 type ClusterLabel = "slow" | "moderate" | "fast";
 
 /* ---------------- Component ---------------- */
@@ -61,6 +77,11 @@ export default function Dashboard() {
   const [clusters, setClusters] = useState<ClusterRow[]>([]);
   const [rulData, setRulData] = useState<RulRow[]>([]);
   const [selectedMachine, setSelectedMachine] = useState<number | null>(null);
+  const [explanation, setExplanation] = useState<{
+    health_explanation: ExplanationItem[];
+    rul_explanation: ExplanationItem[];
+  } | null>(null);
+  const [expLoading, setExpLoading] = useState(false);
 
   /* ---------------- Fetch Data ---------------- */
 
@@ -75,6 +96,16 @@ export default function Dashboard() {
       console.warn("Predict RUL failed, models might not be trained yet:", err);
     });
   }, [file]);
+
+  // Fetch explanation when selection changes
+  useEffect(() => {
+    if (!file || selectedMachine === null) return;
+    setExpLoading(true);
+    api.explain(file, selectedMachine)
+      .then(setExplanation)
+      .catch((err) => console.warn("Failed to fetch SHAP explanations on dashboard:", err))
+      .finally(() => setExpLoading(false));
+  }, [file, selectedMachine]);
 
   /* ---------------- Machine IDs ---------------- */
 
@@ -373,6 +404,146 @@ export default function Dashboard() {
               </div>
             </li>
           </ul>
+        </div>
+
+        {/* Prediction Explanation (SHAP) */}
+        <div className="lg:col-span-3 dashboard-card">
+          <div className="flex items-center justify-between mb-4 border-b border-border/40 pb-3">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Prediction Explanation (Local TreeSHAP Attribution)
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Real-time features impact analysis for Engine {selectedMachine} at latest cycle
+              </p>
+            </div>
+            <Link 
+              to="/explainability" 
+              className="text-xs text-primary hover:underline font-semibold"
+            >
+              Detailed XAI View &rarr;
+            </Link>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 mt-4">
+            {/* Health impact */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-1">Top Sensors Affecting Health</h3>
+              <p className="text-[11px] text-muted-foreground mb-4">
+                Positive impact increases health index, negative decreases health index.
+              </p>
+              {expLoading ? (
+                <div className="h-[220px] flex items-center justify-center text-xs text-muted-foreground animate-pulse">
+                  Calculating local SHAP values...
+                </div>
+              ) : explanation?.health_explanation ? (
+                <div className="h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={explanation.health_explanation.map(item => ({
+                        name: item.sensor.replace("sensor_", "Sensor "),
+                        impact: item.impact
+                      })).sort((a, b) => b.impact - a.impact)}
+                      layout="vertical"
+                      margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <ReferenceLine x={0} stroke="#666" />
+                      <RechartsTooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const val = Number(payload[0].value);
+                            return (
+                              <div className="bg-popover border border-border p-2 rounded-lg text-xs shadow-md">
+                                <p className="font-semibold">{payload[0].payload.name}</p>
+                                <p className={val >= 0 ? "text-status-healthy mt-1" : "text-status-critical mt-1"}>
+                                  SHAP value: {val > 0 ? "+" : ""}{val}
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="impact">
+                        {explanation.health_explanation.map((entry, idx) => (
+                          <Cell 
+                            key={`cell-${idx}`} 
+                            fill={entry.impact >= 0 ? "#10b981" : "#ef4444"} 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-[220px] flex items-center justify-center text-xs text-muted-foreground">
+                  No explanation data available.
+                </div>
+              )}
+            </div>
+
+            {/* RUL impact */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-1">Top Sensors Affecting RUL</h3>
+              <p className="text-[11px] text-muted-foreground mb-4">
+                Influence on predicted remaining useful life (cycles).
+              </p>
+              {expLoading ? (
+                <div className="h-[220px] flex items-center justify-center text-xs text-muted-foreground animate-pulse">
+                  Calculating local SHAP values...
+                </div>
+              ) : explanation?.rul_explanation ? (
+                <div className="h-[220px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={explanation.rul_explanation.map(item => ({
+                        name: item.sensor.replace("sensor_", "Sensor "),
+                        impact: item.impact
+                      })).sort((a, b) => b.impact - a.impact)}
+                      layout="vertical"
+                      margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <ReferenceLine x={0} stroke="#666" />
+                      <RechartsTooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const val = Number(payload[0].value);
+                            return (
+                              <div className="bg-popover border border-border p-2 rounded-lg text-xs shadow-md">
+                                <p className="font-semibold">{payload[0].payload.name}</p>
+                                <p className={val >= 0 ? "text-status-healthy mt-1" : "text-status-critical mt-1"}>
+                                  RUL shift: {val > 0 ? "+" : ""}{val} cycles
+                                </p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Bar dataKey="impact">
+                        {explanation.rul_explanation.map((entry, idx) => (
+                          <Cell 
+                            key={`cell-${idx}`} 
+                            fill={entry.impact >= 0 ? "#10b981" : "#ef4444"} 
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-[220px] flex items-center justify-center text-xs text-muted-foreground">
+                  No explanation data available.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Cluster Chart */}

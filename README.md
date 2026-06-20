@@ -23,16 +23,20 @@ graph TD
         Dashboard[Dashboard Page]
         EvalPage[Model Evaluation Page]
         UploadPage[Upload Page]
+        ExplainPage[Explainable AI Page]
       style Dashboard fill:#1f2937,stroke:#3b82f6,stroke-width:2px;
       style EvalPage fill:#1f2937,stroke:#10b981,stroke-width:2px;
+      style ExplainPage fill:#1f2937,stroke:#f59e0b,stroke-width:2px;
     end
 
     subgraph Backend (FastAPI)
         API[app.py API Endpoints]
         Analytics[analytics.py Engine]
         DB[(SQLite DB / SQLAlchemy)]
+        SHAPEngine[shap_engine.py Engine]
       style API fill:#1e1b4b,stroke:#818cf8,stroke-width:2px;
       style DB fill:#1e1b4b,stroke:#a5b4fc,stroke-width:1px;
+      style SHAPEngine fill:#1e1b4b,stroke:#f43f5e,stroke-width:2px;
     end
 
     subgraph ML Suite
@@ -50,8 +54,12 @@ graph TD
     Analytics -->|Predict Health Score| RF_Health
     Analytics -->|Predict RUL (single-cycle)| RF_Rul
     Analytics -->|Predict RUL (sequences)| LSTM_Rul
+    API -->|Get SHAP Explanations| SHAPEngine
+    SHAPEngine -->|TreeExplainer| RF_Health
+    SHAPEngine -->|TreeExplainer| RF_Rul
     API -->|Write Log| DB
     Dashboard -->|Query RUL & Health| API
+    ExplainPage -->|Fetch SHAP Attributions| API
     EvalPage -->|Fetch Metrics| API
 ```
 
@@ -70,6 +78,22 @@ graph TD
 - **RUL Definition**: Remaining Useful Life is the number of operating cycles left before the engine reaches terminal failure.
   - **Formula**: `RUL = max_cycle - current_cycle` (Capped at 125 cycles to focus on late-stage degradation behavior).
   - **Health Score**: `Health = 1 - (current_cycle / max_cycle)`.
+
+---
+
+## 🧠 Prediction vs. Interpretation (SHAP)
+
+Understanding the distinction between machine learning predictions and model interpretation is critical for reliable engineering oversight:
+
+1. **Prediction (What is expected to happen)**: 
+   - Uses the trained Random Forest and LSTM models to predict specific operational outcomes. 
+   - E.g., *"Engine 1 currently has a health score of 0.84 and is expected to fail in 76 cycles (RUL)."*
+   
+2. **Interpretation (Why it is expected to happen)**:
+   - Uses TreeSHAP (SHapley Additive exPlanations) to measure individual sensor contributions.
+   - E.g., *"Engine 1's health score was decreased by 0.13 due to a high reading in Sensor 11 (Core static pressure) and decreased by 0.09 by Sensor 4 (Total LPC outlet temperature)."*
+   
+By explaining the *why*, maintenance engineers can identify the root cause of degradation and service specific components rather than relying on a black-box recommendation.
 
 ---
 
@@ -108,7 +132,31 @@ All request parameters are standard CSV uploads or simple query calls.
   "predicted_rul": 76,
   "risk_level": "MEDIUM",
   "reliability": 87.5,
-  "cluster": 1
+  "cluster": 1,
+  "health_explanation": [
+    { "sensor": "sensor_11", "impact": -0.125 },
+    { "sensor": "sensor_4", "impact": -0.092 }
+  ],
+  "rul_explanation": [
+    { "sensor": "sensor_11", "impact": -14.2 },
+    { "sensor": "sensor_4", "impact": -10.7 }
+  ]
+}
+```
+
+### 1b. Explanations Only
+- **Endpoint**: `POST /explain`
+- **Description**: Returns prediction explanation attributions (SHAP values) without running heavy dashboard analytics.
+- **Parameters**: `file` (Multipart file), `engine_id` (Query parameter, optional)
+- **Response Format**:
+```json
+{
+  "health_explanation": [
+    { "sensor": "sensor_11", "impact": -0.125 }
+  ],
+  "rul_explanation": [
+    { "sensor": "sensor_11", "impact": -14.2 }
+  ]
 }
 ```
 
