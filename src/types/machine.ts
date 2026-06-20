@@ -1,5 +1,5 @@
 export interface MachineData {
-  machine_id: string;
+  machine_id: string | number;
   cycle: number;
   health: number;
   dsi: number;
@@ -8,7 +8,7 @@ export interface MachineData {
 }
 
 export interface ClusterData {
-  machine_id: string;
+  machine_id: string | number;
   operating_cycles: number;
   degradation_span: number;
   cluster: 'slow' | 'moderate' | 'fast';

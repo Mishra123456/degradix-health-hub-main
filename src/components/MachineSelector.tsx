@@ -7,9 +7,9 @@ import {
 } from '@/components/ui/select';
 
 interface MachineSelectorProps {
-  machines: string[];
-  value: string;
-  onChange: (value: string) => void;
+  machines: number[];
+  value: number | null;
+  onChange: (value: number) => void;
 }
 
 export function MachineSelector({
@@ -18,14 +18,17 @@ export function MachineSelector({
   onChange,
 }: MachineSelectorProps) {
   return (
-    <Select value={value} onValueChange={onChange}>
+    <Select 
+      value={value !== null ? value.toString() : undefined} 
+      onValueChange={(val) => onChange(Number(val))}
+    >
       <SelectTrigger className="w-[200px] bg-card">
         <SelectValue placeholder="Select Machine" />
       </SelectTrigger>
       <SelectContent className="bg-card border-border">
         {machines.map((machine) => (
-          <SelectItem key={machine} value={machine}>
-            {machine}
+          <SelectItem key={machine} value={machine.toString()}>
+            Engine {machine}
           </SelectItem>
         ))}
       </SelectContent>

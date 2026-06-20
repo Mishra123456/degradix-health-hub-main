@@ -8,10 +8,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { MachineData } from '@/types/machine';
-
 interface DSIChartProps {
-  data: MachineData[];
+  data: { cycle: number; dsi: number }[];
   averageData?: { cycle: number; avgDsi: number }[];
   showAverage?: boolean;
 }

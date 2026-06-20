@@ -8,10 +8,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { MachineData } from '@/types/machine';
-
 interface HealthChartProps {
-  data: MachineData[];
+  data: { cycle: number; health: number }[];
   showThresholds?: boolean;
 }
 
