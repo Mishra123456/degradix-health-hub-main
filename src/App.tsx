@@ -12,6 +12,7 @@ import ReliabilityPage from "./pages/ReliabilityPage";
 import InsightsPage from "./pages/InsightsPage";
 import AboutPage from "./pages/AboutPage";
 import ContactPage from "./pages/ContactPage";
+import EvaluationPage from "./pages/EvaluationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/clustering" element={<ClusteringPage />} />
           <Route path="/reliability" element={<ReliabilityPage />} />
           <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/evaluation" element={<EvaluationPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />

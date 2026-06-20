@@ -1,0 +1,6 @@
+Health_MAE:0.0407
+Health_R2:0.9638
+RUL_MAE:178.00
+RUL_RMSE:219.47
+DSI_Corr:-0.1628
+Silhouette:0.5783

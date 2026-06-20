@@ -23,4 +23,12 @@ export const api = {
   clusters: (file: File) => postFile("/clusters", file),
   reliability: (file: File) => postFile("/reliability", file),
   insights: (file: File) => postFile("/insights", file),
+  predictRul: (file: File) => postFile("/predict-rul", file),
+  predictHealth: (file: File) => postFile("/predict-health", file),
+  predictComplete: (file: File) => postFile("/predict-complete", file),
+  metrics: async () => {
+    const res = await fetch(`${BASE_URL}/metrics`);
+    if (!res.ok) throw new Error("API request failed");
+    return res.json();
+  },
 };
