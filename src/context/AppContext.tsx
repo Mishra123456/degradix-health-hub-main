@@ -14,6 +14,9 @@ type AppContextType = {
   setReliabilityData: (d: ReliabilityRow[]) => void;
 
   machineIds: number[];
+
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (c: boolean) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -21,6 +24,7 @@ const AppContext = createContext<AppContextType | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [file, setFile] = useState<File | null>(null);
   const [reliabilityData, setReliabilityData] = useState<ReliabilityRow[]>([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   /** 🔑 ALWAYS SAFE */
   const machineIds = useMemo(() => {
@@ -37,6 +41,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         reliabilityData,
         setReliabilityData,
         machineIds,
+        sidebarCollapsed,
+        setSidebarCollapsed,
       }}
     >
       {children}

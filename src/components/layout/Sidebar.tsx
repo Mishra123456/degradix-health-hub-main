@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -15,6 +14,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAppData } from '@/context/AppContext';
 
 interface NavItem {
   title: string;
@@ -30,12 +30,13 @@ const navItems: NavItem[] = [
   { title: 'Pattern Clustering', href: '/clustering', icon: GitBranch },
   { title: 'Reliability', href: '/reliability', icon: Shield },
   { title: 'Insights', href: '/insights', icon: Lightbulb },
+  { title: 'Model Evaluation', href: '/evaluation', icon: Cpu },
   { title: 'Contact & Queries', href: '/contact', icon: MessageSquare },
   { title: 'About', href: '/about', icon: Info },
 ];
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const { sidebarCollapsed: collapsed, setSidebarCollapsed: setCollapsed } = useAppData();
   const location = useLocation();
 
   return (
