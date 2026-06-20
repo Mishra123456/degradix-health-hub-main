@@ -5,7 +5,8 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { StatusBadge, getHealthStatus } from "@/components/ui/status-badge";
 import { HealthChart } from "@/components/charts/HealthChart";
 import { MachineSelector } from "@/components/MachineSelector";
-import { Activity, TrendingUp, Clock, Info } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Activity, TrendingUp, Clock, Info, Upload } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -58,7 +59,21 @@ export default function HealthPage() {
           title="Machine Health Analysis"
           description="Upload data to view machine health"
         />
-        <p className="text-muted-foreground">Please upload a CSV file first.</p>
+        <div className="flex flex-col items-center justify-center min-h-[50vh] p-8 text-center bg-card rounded-2xl border border-border/50 max-w-3xl mx-auto shadow-sm mt-8">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-6 animate-pulse">
+            <Upload className="h-8 w-8" />
+          </div>
+          <h2 className="text-2xl font-bold text-foreground mb-3">No Active Machine Data</h2>
+          <p className="text-muted-foreground text-sm max-w-md mb-8 leading-relaxed">
+            Please upload a CSV file with your sensor data to analyze machine health indices and operational state trends.
+          </p>
+          <Link
+            to="/upload"
+            className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <Upload className="mr-2 h-4 w-4" /> Go to Upload Page
+          </Link>
+        </div>
       </MainLayout>
     );
   }
