@@ -62,7 +62,7 @@ def main():
     
     # 5. Train & Evaluate RandomForest Health Model
     print("Training RandomForest Health Model...")
-    rf_health = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    rf_health = RandomForestRegressor(n_estimators=100, max_depth=12, min_samples_leaf=4, random_state=42, n_jobs=-1)
     rf_health.fit(X_train, train_df["health"].values)
     
     health_pred = rf_health.predict(X_test)
@@ -76,7 +76,7 @@ def main():
     
     # 6. Train & Evaluate RandomForest RUL Model
     print("Training RandomForest RUL Model...")
-    rf_rul = RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)
+    rf_rul = RandomForestRegressor(n_estimators=100, max_depth=12, min_samples_leaf=4, random_state=42, n_jobs=-1)
     rf_rul.fit(X_train, train_df["RUL"].values)
     
     rul_pred_rf = rf_rul.predict(X_test)
@@ -146,10 +146,10 @@ def main():
     print("Retraining final Random Forest models on full dataset...")
     X_full = scaler.fit_transform(df[sensor_cols].values)
     
-    final_rf_health = RandomForestRegressor(n_estimators=150, random_state=42, n_jobs=-1)
+    final_rf_health = RandomForestRegressor(n_estimators=100, max_depth=12, min_samples_leaf=4, random_state=42, n_jobs=-1)
     final_rf_health.fit(X_full, df["health"].values)
     
-    final_rf_rul = RandomForestRegressor(n_estimators=150, random_state=42, n_jobs=-1)
+    final_rf_rul = RandomForestRegressor(n_estimators=100, max_depth=12, min_samples_leaf=4, random_state=42, n_jobs=-1)
     final_rf_rul.fit(X_full, df["RUL"].values)
     
     # 10. Save Models
