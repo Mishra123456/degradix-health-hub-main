@@ -1,0 +1,18 @@
+
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+[36mvite v7.3.0 [32mbuilding client environment for production...[36m[39m
+[32m✓[39m 0 modules transformed.
+[31m✗[39m Build failed in 1.25s
+[31merror during build:
+[31m[vite:build-html] EISDIR: illegal operation on a directory, read[31m
+file: [36mc:/Users/user/Downloads/degradix-health-hub-main-main (2)/degradix-health-hub-main-main/index.html[31m
+    at async readFileHandle (node:internal/fs/promises:548:24)
+    at async fileToBuiltUrl (file:///c:/Users/user/Downloads/degradix-health-hub-main-main%20(2)/degradix-health-hub-main-main/node_modules/vite/dist/node/chunks/config.js:8777:18)
+    at async processAssetUrl (file:///c:/Users/user/Downloads/degradix-health-hub-main-main%20(2)/degradix-health-hub-main-main/node_modules/vite/dist/node/chunks/config.js:23897:14)
+    at async file:///c:/Users/user/Downloads/degradix-health-hub-main-main%20(2)/degradix-health-hub-main-main/node_modules/vite/dist/node/chunks/config.js:23973:30
+    at async Promise.all (index 0)
+    at async Object.handler (file:///c:/Users/user/Downloads/degradix-health-hub-main-main%20(2)/degradix-health-hub-main-main/node_modules/vite/dist/node/chunks/config.js:24000:5)
+    at async transform (file:///c:/Users/user/Downloads/degradix-health-hub-main-main%20(2)/degradix-health-hub-main-main/node_modules/rollup/dist/es/shared/node-entry.js:21206:16)
+    at async ModuleLoader.addModuleSource (file:///c:/Users/user/Downloads/degradix-health-hub-main-main%20(2)/degradix-health-hub-main-main/node_modules/rollup/dist/es/shared/node-entry.js:21420:36)[39m

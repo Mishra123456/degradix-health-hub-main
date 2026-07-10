@@ -3,13 +3,14 @@ import json
 import joblib
 import numpy as np
 import pandas as pd
+import requests
 from pathlib import Path
 from typing import List, Dict, Any
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from tensorflow.keras.models import load_model
 from pydantic import BaseModel
+from huggingface_hub import hf_hub_download
 
 # Import database & models
 from database import get_db, AnalysisHistory
@@ -30,6 +31,80 @@ from analytics import (
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "ml"
 SEQ_LEN = 20
+
+HF_MODEL_ID = os.environ.get("HF_MODEL_ID")
+HF_TOKEN = os.environ.get("HF_TOKEN")
+
+def query_hf_lstm(sequence_history: np.ndarray) -> float:
+    if not HF_MODEL_ID:
+        return None
+        
+    # sequence_history shape is (20, 21)
+    # We reshape to (1, 20, 21) and convert to list
+    inputs = sequence_history.reshape(1, 20, -1).tolist()
+    
+    API_URL = f"https://api-inference.huggingface.co/models/{HF_MODEL_ID}"
+    headers = {}
+    if HF_TOKEN:
+        headers["Authorization"] = f"Bearer {HF_TOKEN}"
+        
+    payload = {"inputs": inputs}
+    
+    try:
+        response = requests.post(API_URL, headers=headers, json=payload, timeout=20.0)
+        if response.status_code == 200:
+            result = response.json()
+            if isinstance(result, list):
+                if isinstance(result[0], list):
+                    return float(result[0][0])
+                return float(result[0])
+            elif isinstance(result, dict) and "error" in result:
+                if "estimated_time" in result:
+                    print(f"HF model is loading. Estimated time: {result['estimated_time']}s. Falling back to RF.")
+                else:
+                    print(f"HF Inference API Error: {result['error']}")
+            else:
+                return float(result)
+        else:
+            print(f"HF Inference API failed with code {response.status_code}: {response.text}")
+    except Exception as e:
+        print(f"Failed to query HF Inference API: {e}")
+        
+    return None
+
+import subprocess
+import threading
+
+training_process = None
+training_lock = threading.Lock()
+
+def run_training_in_background():
+    global training_process
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    log_path = MODEL_DIR / "training.log"
+    with open(log_path, "w", encoding="utf-8") as f:
+        import sys
+        p = subprocess.Popen(
+            [sys.executable, "-u", str(BASE_DIR / "train_models.py")],
+            stdout=f,
+            stderr=subprocess.STDOUT,
+            cwd=str(BASE_DIR),
+            text=True
+        )
+        with training_lock:
+            training_process = p
+        p.wait()
+
+def is_training_active():
+    global training_process
+    with training_lock:
+        if training_process is None:
+            return False
+        status = training_process.poll()
+        if status is None:
+            return True
+        return False
+
 
 # --------------------------------------------------
 # APP INIT & STARTUP
@@ -76,15 +151,35 @@ rf_rul = None
 scaler = None
 lstm_model = None
 
-try:
-    rf_health = joblib.load(MODEL_DIR / "rf_health.joblib")
-    rf_rul = joblib.load(MODEL_DIR / "rf_rul.joblib")
-    scaler = joblib.load(MODEL_DIR / "scaler.joblib")
-    lstm_model = load_model(MODEL_DIR / "lstm_rul.keras")
-    print("All ML models loaded successfully.")
-except Exception as e:
-    print(f"Warning: Models could not be loaded at startup: {e}")
-    print("Ensure you run 'python train_models.py' inside the backend folder to generate them.")
+# If HF_MODEL_ID is set, download RF models & scaler from HF Hub
+if HF_MODEL_ID:
+    try:
+        print(f"Downloading models dynamically from Hugging Face Hub: {HF_MODEL_ID}...")
+        rf_health_path = hf_hub_download(repo_id=HF_MODEL_ID, filename="rf_health.joblib", token=HF_TOKEN)
+        rf_rul_path = hf_hub_download(repo_id=HF_MODEL_ID, filename="rf_rul.joblib", token=HF_TOKEN)
+        scaler_path = hf_hub_download(repo_id=HF_MODEL_ID, filename="scaler.joblib", token=HF_TOKEN)
+        
+        rf_health = joblib.load(rf_health_path)
+        rf_rul = joblib.load(rf_rul_path)
+        scaler = joblib.load(scaler_path)
+        print("Scikit-learn models and scaler loaded successfully from HF Hub.")
+    except Exception as e:
+        print(f"Error loading models from HF Hub: {e}. Falling back to local directories.")
+        HF_MODEL_ID = None # Clear env var to trigger local loading fallback
+
+# Local loading fallback (local dev or HF download fail)
+if not HF_MODEL_ID:
+    try:
+        from tensorflow.keras.models import load_model
+        rf_health = joblib.load(MODEL_DIR / "rf_health.joblib")
+        rf_rul = joblib.load(MODEL_DIR / "rf_rul.joblib")
+        scaler = joblib.load(MODEL_DIR / "scaler.joblib")
+        lstm_model = load_model(MODEL_DIR / "lstm_rul.keras")
+        print("All local ML models loaded successfully.")
+    except Exception as e:
+        print(f"Warning: Local models could not be loaded at startup: {e}")
+        print("Ensure you run 'python train_models.py' inside the backend folder to generate them.")
+
 
 # --------------------------------------------------
 # PYDANTIC RESPONSE SCHEMAS
@@ -276,7 +371,12 @@ async def predict_rul(file: UploadFile = File(...)):
             if cycle > SEQ_LEN:
                 # Get the window of previous 20 cycles
                 seq_hist = group_sensors[idx - SEQ_LEN:idx]
-                rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, lstm_model, seq_hist)
+                if HF_MODEL_ID:
+                    rul_val = query_hf_lstm(seq_hist)
+                    if rul_val is None:
+                        rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, None, None)
+                else:
+                    rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, lstm_model, seq_hist)
             else:
                 # Fallback to RandomForest RUL model
                 rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, None, None)
@@ -358,7 +458,13 @@ async def predict_complete(
     # Compute RUL
     if latest_cycle > SEQ_LEN:
         seq_hist = latest_sensors[latest_idx - SEQ_LEN:latest_idx]
-        rul_val = calculate_rul(latest_sensors[latest_idx:latest_idx+1], rf_rul, lstm_model, seq_hist)
+        if HF_MODEL_ID:
+            rul_val = query_hf_lstm(seq_hist)
+            if rul_val is None:
+                # Fallback to RF RUL model if API fails
+                rul_val = calculate_rul(latest_sensors[latest_idx:latest_idx+1], rf_rul, None, None)
+        else:
+            rul_val = calculate_rul(latest_sensors[latest_idx:latest_idx+1], rf_rul, lstm_model, seq_hist)
     else:
         rul_val = calculate_rul(latest_sensors[latest_idx:latest_idx+1], rf_rul, None, None)
         
@@ -453,6 +559,67 @@ def get_metrics():
         rf_rul=ModelMetricsDetail(mae=14.82, rmse=20.15, r2=0.8123),
         lstm_rul=ModelMetricsDetail(mae=11.45, rmse=16.82, r2=0.8654)
     )
+
+# --------------------------------------------------
+# MODEL TRAINING LOGS & PIPELINE ENDPOINTS
+# --------------------------------------------------
+
+@app.post("/train")
+def start_training():
+    if HF_MODEL_ID:
+        print("Warning: Retraining models dynamically on Render is disabled in Hugging Face mode as TensorFlow is not loaded. Train locally and push to Hub.")
+        
+    if is_training_active():
+        raise HTTPException(status_code=400, detail="Model training is already in progress.")
+    
+    thread = threading.Thread(target=run_training_in_background, daemon=True)
+    thread.start()
+    return {"message": "Training started successfully."}
+
+@app.get("/train/status")
+def get_training_status():
+    active = is_training_active()
+    log_path = MODEL_DIR / "training.log"
+    log_exists = log_path.exists()
+    
+    last_updated = None
+    if log_exists:
+        last_updated = os.path.getmtime(log_path)
+        
+    return {
+        "status": "training" if active else "idle",
+        "log_exists": log_exists,
+        "last_updated": last_updated
+    }
+
+@app.get("/train/logs")
+def get_training_logs(q: str = None, tail: int = None):
+    log_path = MODEL_DIR / "training.log"
+    if not log_path.exists():
+        return {"status": "idle", "lines": [], "total_lines": 0}
+        
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read logs: {e}")
+        
+    indexed_lines = [{"index": i + 1, "text": line.rstrip("\r\n")} for i, line in enumerate(lines)]
+    
+    if q:
+        q_lower = q.lower()
+        filtered_lines = [item for item in indexed_lines if q_lower in item["text"].lower()]
+    else:
+        filtered_lines = indexed_lines
+        
+    if tail and tail > 0:
+        filtered_lines = filtered_lines[-tail:]
+        
+    return {
+        "status": "training" if is_training_active() else "idle",
+        "lines": filtered_lines,
+        "total_lines": len(indexed_lines)
+    }
 
 # --------------------------------------------------
 # LEGACY ENDPOINTS (COMPATIBILITY)

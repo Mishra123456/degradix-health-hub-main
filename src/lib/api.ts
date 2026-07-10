@@ -37,5 +37,27 @@ export const api = {
     if (!res.ok) throw new Error("API request failed");
     return res.json();
   },
+  startTraining: async () => {
+    const res = await fetch(`${BASE_URL}/train`, { method: "POST" });
+    if (!res.ok) throw new Error("API request failed");
+    return res.json();
+  },
+  getTrainingStatus: async () => {
+    const res = await fetch(`${BASE_URL}/train/status`);
+    if (!res.ok) throw new Error("API request failed");
+    return res.json();
+  },
+  getTrainingLogs: async (q?: string, tail?: number) => {
+    let url = `${BASE_URL}/train/logs`;
+    const params = new URLSearchParams();
+    if (q) params.append("q", q);
+    if (tail) params.append("tail", tail.toString());
+    const queryStr = params.toString();
+    if (queryStr) url += `?${queryStr}`;
+    
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("API request failed");
+    return res.json();
+  },
 };
 

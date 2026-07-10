@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Cpu,
   MessageSquare,
-  Brain
+  Brain,
+  Terminal
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAppData } from '@/context/AppContext';
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { title: 'Insights', href: '/insights', icon: Lightbulb },
   { title: 'Explainable AI', href: '/explainability', icon: Brain },
   { title: 'Model Evaluation', href: '/evaluation', icon: Cpu },
+  { title: 'Training Logs', href: '/logs', icon: Terminal },
   { title: 'Contact & Queries', href: '/contact', icon: MessageSquare },
   { title: 'About', href: '/about', icon: Info },
 ];
