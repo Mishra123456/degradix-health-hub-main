@@ -7,3 +7,4 @@ joblib
 sqlalchemy
 python-multipart
 huggingface_hub
+requests
