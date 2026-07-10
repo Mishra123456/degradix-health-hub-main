@@ -13,7 +13,6 @@ import InsightsPage from "./pages/InsightsPage";
 import AboutPage from "./pages/AboutPage";
 import EvaluationPage from "./pages/EvaluationPage";
 import ExplainabilityPage from "./pages/ExplainabilityPage";
-import LogsPage from "./pages/LogsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,7 +33,6 @@ const App = () => (
           <Route path="/insights" element={<InsightsPage />} />
           <Route path="/explainability" element={<ExplainabilityPage />} />
           <Route path="/evaluation" element={<EvaluationPage />} />
-          <Route path="/logs" element={<LogsPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
