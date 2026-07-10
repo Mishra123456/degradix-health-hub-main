@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,6 +9,7 @@ interface FileUploadProps {
 }
 
 export function FileUpload({ onUpload, isLoading }: FileUploadProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -50,8 +51,18 @@ export function FileUpload({ onUpload, isLoading }: FileUploadProps) {
     try {
       await onUpload(file);
       setUploadStatus('success');
+      setTimeout(() => {
+        setFile(null);
+        setUploadStatus('idle');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }, 2000);
     } catch (error) {
       setUploadStatus('error');
+      setTimeout(() => {
+        setUploadStatus('idle');
+      }, 4000);
     }
   };
 
@@ -71,6 +82,7 @@ export function FileUpload({ onUpload, isLoading }: FileUploadProps) {
         onDrop={handleDrop}
       >
         <input
+          ref={fileInputRef}
           type="file"
           accept=".csv"
           onChange={handleChange}
@@ -149,7 +161,7 @@ export function FileUpload({ onUpload, isLoading }: FileUploadProps) {
           Expected CSV Format:
         </p>
         <code className="text-xs text-muted-foreground font-mono">
-          machine_id, cycle, sensor_1, sensor_2, sensor_3, ...
+          engine_id, cycle, sensor_1, sensor_2, sensor_3, ...
         </code>
       </div>
     </div>

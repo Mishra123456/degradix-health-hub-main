@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Cpu,
-  MessageSquare,
   Brain,
   Terminal
 } from 'lucide-react';
@@ -35,7 +34,6 @@ const navItems: NavItem[] = [
   { title: 'Explainable AI', href: '/explainability', icon: Brain },
   { title: 'Model Evaluation', href: '/evaluation', icon: Cpu },
   { title: 'Training Logs', href: '/logs', icon: Terminal },
-  { title: 'Contact & Queries', href: '/contact', icon: MessageSquare },
   { title: 'About', href: '/about', icon: Info },
 ];
 

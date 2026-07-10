@@ -15,7 +15,22 @@ async function postFile(endpoint: string, file: File, engineId?: number) {
   });
 
   if (!res.ok) {
-    throw new Error("API request failed");
+    let errorDetail = "API request failed";
+    try {
+      const errJson = await res.json();
+      if (errJson && errJson.detail) {
+        if (typeof errJson.detail === "string") {
+          errorDetail = errJson.detail;
+        } else if (Array.isArray(errJson.detail)) {
+          errorDetail = errJson.detail.map((d: any) => d.msg || JSON.stringify(d)).join(", ");
+        } else {
+          errorDetail = JSON.stringify(errJson.detail);
+        }
+      }
+    } catch (_) {
+      // Ignore if JSON parsing fails
+    }
+    throw new Error(errorDetail);
   }
 
   return res.json();

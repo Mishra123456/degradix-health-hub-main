@@ -242,23 +242,36 @@ def load_csv(file: UploadFile) -> pd.DataFrame:
     # Drop rows that are completely empty
     df = df.dropna(how="all")
     
-    # Drop rows where engine_id or cycle is NaN
-    df = df.dropna(subset=["engine_id", "cycle"])
+    # Check if required columns are present
+    required_cols = ["engine_id", "cycle"]
+    missing_cols = [col for col in required_cols if col not in df.columns]
+    if missing_cols:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Missing required columns in CSV: {', '.join(missing_cols)}"
+        )
+        
+    # Validate presence of at least one sensor column (starting with sensor_)
+    sensor_cols = [col for col in df.columns if col.startswith("sensor_")]
+    if not sensor_cols:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="CSV file must contain at least one sensor column (e.g., sensor_1, sensor_2, etc.)"
+        )
+        
+    # Convert identifiers to numeric, and drop rows with invalid (NaN) identifiers
+    df["engine_id"] = pd.to_numeric(df["engine_id"], errors="coerce")
+    df["cycle"] = pd.to_numeric(df["cycle"], errors="coerce")
+    df = df.dropna(subset=required_cols)
+    
+    # Convert remaining identifiers to integers
+    df["engine_id"] = df["engine_id"].astype(int)
+    df["cycle"] = df["cycle"].astype(int)
     
     if len(df) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="CSV file contains no valid rows with engine_id and cycle"
-        )
-        
-    # Convert identifiers to integers
-    try:
-        df["engine_id"] = pd.to_numeric(df["engine_id"], errors="coerce").fillna(0).astype(int)
-        df["cycle"] = pd.to_numeric(df["cycle"], errors="coerce").fillna(0).astype(int)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid values in engine_id or cycle columns: {e}"
         )
         
     # Standardize sensors: ensure sensor_1 to sensor_21 exist

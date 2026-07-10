@@ -25,9 +25,10 @@ export default function UploadPage() {
 
       // Track upload history
       setUploadedFiles((prev) => [...prev, file.name]);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Failed to upload and analyze CSV file");
+      alert(error.message || "Failed to upload and analyze CSV file");
+      throw error;
     } finally {
       setIsLoading(false);
     }

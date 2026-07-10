@@ -11,7 +11,6 @@ import ClusteringPage from "./pages/ClusteringPage";
 import ReliabilityPage from "./pages/ReliabilityPage";
 import InsightsPage from "./pages/InsightsPage";
 import AboutPage from "./pages/AboutPage";
-import ContactPage from "./pages/ContactPage";
 import EvaluationPage from "./pages/EvaluationPage";
 import ExplainabilityPage from "./pages/ExplainabilityPage";
 import LogsPage from "./pages/LogsPage";
@@ -37,7 +36,6 @@ const App = () => (
           <Route path="/evaluation" element={<EvaluationPage />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
