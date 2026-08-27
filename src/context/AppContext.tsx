@@ -17,6 +17,9 @@ type AppContextType = {
 
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (c: boolean) => void;
+
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (open: boolean) => void;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -25,6 +28,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [file, setFile] = useState<File | null>(null);
   const [reliabilityData, setReliabilityData] = useState<ReliabilityRow[]>([]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   /** 🔑 ALWAYS SAFE */
   const machineIds = useMemo(() => {
@@ -43,6 +47,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         machineIds,
         sidebarCollapsed,
         setSidebarCollapsed,
+        mobileMenuOpen,
+        setMobileMenuOpen,
       }}
     >
       {children}

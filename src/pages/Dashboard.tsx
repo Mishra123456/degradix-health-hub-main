@@ -270,7 +270,7 @@ export default function Dashboard() {
       </PageHeader>
 
       {/* Fleet Level Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Fleet Machines"
           value={machineIds.length}
@@ -291,17 +291,17 @@ export default function Dashboard() {
 
         <MetricCard
           title="Fastest Degrader"
-          value={`Engine ${fastestDegrader?.engine}`}
-          subtitle={`Avg DSI ${fastestDegrader?.avgDsi.toFixed(3)}`}
+          value={`Engine ${fastestDegrader?.engine ?? "N/A"}`}
+          subtitle={`Avg DSI ${fastestDegrader?.avgDsi.toFixed(3) ?? "0.000"}`}
           icon={TrendingDown}
         />
       </div>
 
       {/* Selected Engine Prognostics (RUL & Risk additions) */}
-      <div className="mb-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+      <div className="mb-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
         Engine {selectedMachine} Prognostics
       </div>
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Remaining Useful Life"
           value={latestRul ? `${latestRul.predicted_rul} Cycles` : "N/A"}
@@ -339,11 +339,11 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Health vs Cycle Chart */}
         <div className="lg:col-span-2 dashboard-card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               Health vs Time (Cycle)
             </h2>
             <StatusBadge status={healthStatus} />
@@ -358,7 +358,7 @@ export default function Dashboard() {
         </div>
 
         {/* Reliability Gauge */}
-        <div className="dashboard-card flex items-center justify-center">
+        <div className="dashboard-card flex items-center justify-center py-6">
           <ReliabilityGauge
             value={(latestReliability?.reliability ?? 0) * 100}
             size="lg"
@@ -376,30 +376,30 @@ export default function Dashboard() {
         </div>
 
         {/* RUL Classification Strategy Card */}
-        <div className="dashboard-card flex flex-col justify-center p-6">
+        <div className="dashboard-card flex flex-col justify-center p-4 sm:p-6">
           <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4 text-primary" />
             RUL Risk Strategy
           </h3>
           <ul className="space-y-3 text-xs text-muted-foreground">
             <li className="flex items-start gap-2.5">
-              <span className="h-2 w-2 rounded-full bg-status-healthy mt-1" />
+              <span className="h-2 w-2 rounded-full bg-status-healthy mt-1 shrink-0" />
               <div>
-                <strong>Low Risk (&gt;80 cycles):</strong>
+                <strong className="text-foreground">Low Risk (&gt;80 cycles):</strong>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Machine is operating optimally. Perform routine logs.</p>
               </div>
             </li>
             <li className="flex items-start gap-2.5 border-t border-border/50 pt-2.5">
-              <span className="h-2 w-2 rounded-full bg-status-moderate mt-1" />
+              <span className="h-2 w-2 rounded-full bg-status-moderate mt-1 shrink-0" />
               <div>
-                <strong>Medium Risk (30–80 cycles):</strong>
+                <strong className="text-foreground">Medium Risk (30–80 cycles):</strong>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Degradation detected. Schedule inspection for next service window.</p>
               </div>
             </li>
             <li className="flex items-start gap-2.5 border-t border-border/50 pt-2.5">
-              <span className="h-2 w-2 rounded-full bg-status-critical mt-1" />
+              <span className="h-2 w-2 rounded-full bg-status-critical mt-1 shrink-0" />
               <div>
-                <strong>High Risk (&lt;30 cycles):</strong>
+                <strong className="text-foreground">High Risk (&lt;30 cycles):</strong>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Immediate failure danger. Dispatch repair crews immediately.</p>
               </div>
             </li>
@@ -408,9 +408,9 @@ export default function Dashboard() {
 
         {/* Prediction Explanation (SHAP) */}
         <div className="lg:col-span-3 dashboard-card">
-          <div className="flex items-center justify-between mb-4 border-b border-border/40 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-border/40 pb-3">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground">
                 Prediction Explanation (Local TreeSHAP Attribution)
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
@@ -419,15 +419,15 @@ export default function Dashboard() {
             </div>
             <Link 
               to="/explainability" 
-              className="text-xs text-primary hover:underline font-semibold"
+              className="text-xs text-primary hover:underline font-semibold shrink-0"
             >
               Detailed XAI View &rarr;
             </Link>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             {/* Health impact */}
-            <div>
+            <div className="min-w-0">
               <h3 className="text-sm font-semibold text-foreground mb-1">Top Sensors Affecting Health</h3>
               <p className="text-[11px] text-muted-foreground mb-4">
                 Positive impact increases health index, negative decreases health index.
@@ -437,7 +437,7 @@ export default function Dashboard() {
                   Calculating local SHAP values...
                 </div>
               ) : explanation?.health_explanation ? (
-                <div className="h-[220px]">
+                <div className="h-[220px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={explanation.health_explanation.map(item => ({
@@ -445,11 +445,11 @@ export default function Dashboard() {
                         impact: item.impact
                       })).sort((a, b) => b.impact - a.impact)}
                       layout="vertical"
-                      margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                      margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
                       <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={65} />
                       <ReferenceLine x={0} stroke="#666" />
                       <RechartsTooltip
                         content={({ active, payload }) => {
@@ -486,7 +486,7 @@ export default function Dashboard() {
             </div>
 
             {/* RUL impact */}
-            <div>
+            <div className="min-w-0">
               <h3 className="text-sm font-semibold text-foreground mb-1">Top Sensors Affecting RUL</h3>
               <p className="text-[11px] text-muted-foreground mb-4">
                 Influence on predicted remaining useful life (cycles).
@@ -496,7 +496,7 @@ export default function Dashboard() {
                   Calculating local SHAP values...
                 </div>
               ) : explanation?.rul_explanation ? (
-                <div className="h-[220px]">
+                <div className="h-[220px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={explanation.rul_explanation.map(item => ({
@@ -504,11 +504,11 @@ export default function Dashboard() {
                         impact: item.impact
                       })).sort((a, b) => b.impact - a.impact)}
                       layout="vertical"
-                      margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                      margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
                       <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} width={65} />
                       <ReferenceLine x={0} stroke="#666" />
                       <RechartsTooltip
                         content={({ active, payload }) => {

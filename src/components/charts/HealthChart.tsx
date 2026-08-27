@@ -19,24 +19,24 @@ export function HealthChart({ data, showThresholds = true }: HealthChartProps) {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 10, right: 15, left: -10, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="cycle"
             stroke="hsl(var(--muted-foreground))"
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
             axisLine={false}
-            label={{ value: 'Operating Cycle', position: 'insideBottomRight', offset: -5, fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+            label={{ value: 'Operating Cycle', position: 'insideBottomRight', offset: -5, fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
           />
           <YAxis
             stroke="hsl(var(--muted-foreground))"
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
             axisLine={false}
             domain={[0, 100]}
-            label={{ value: 'Health %', angle: -90, position: 'insideLeft', fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+            label={{ value: 'Health %', angle: -90, position: 'insideLeft', offset: 15, fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
           />
           <Tooltip
             contentStyle={{
@@ -56,13 +56,13 @@ export function HealthChart({ data, showThresholds = true }: HealthChartProps) {
                 y={75}
                 stroke="hsl(var(--status-moderate))"
                 strokeDasharray="5 5"
-                label={{ value: 'Moderate', position: 'right', fill: 'hsl(var(--status-moderate))', fontSize: 10 }}
+                label={{ value: 'Moderate', position: 'right', fill: 'hsl(var(--status-moderate))', fontSize: 9 }}
               />
               <ReferenceLine
                 y={50}
                 stroke="hsl(var(--status-critical))"
                 strokeDasharray="5 5"
-                label={{ value: 'Critical', position: 'right', fill: 'hsl(var(--status-critical))', fontSize: 10 }}
+                label={{ value: 'Critical', position: 'right', fill: 'hsl(var(--status-critical))', fontSize: 9 }}
               />
             </>
           )}

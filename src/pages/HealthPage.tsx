@@ -116,7 +116,7 @@ export default function HealthPage() {
       </PageHeader>
 
       {/* Health Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Current Health"
           value={`${(latestHealth?.health * 100 || 0).toFixed(1)}%`}
@@ -153,9 +153,9 @@ export default function HealthPage() {
 
       {/* Health Chart */}
       <div className="dashboard-card mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               Health vs Time (Cycle)
             </h2>
             <Tooltip>
@@ -188,32 +188,32 @@ export default function HealthPage() {
           Health Status Thresholds
         </h3>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="flex items-center gap-3 rounded-lg bg-status-healthy-bg p-3 border border-status-healthy/20">
-            <div className="h-3 w-3 rounded-full bg-status-healthy" />
+            <div className="h-3 w-3 rounded-full bg-status-healthy shrink-0" />
             <div>
-              <p className="font-medium text-foreground">Healthy (75–100%)</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="font-medium text-foreground text-xs sm:text-sm">Healthy (75–100%)</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Normal operation, no action required
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 rounded-lg bg-status-moderate-bg p-3 border border-status-moderate/20">
-            <div className="h-3 w-3 rounded-full bg-status-moderate" />
+            <div className="h-3 w-3 rounded-full bg-status-moderate shrink-0" />
             <div>
-              <p className="font-medium text-foreground">Moderate (50–75%)</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="font-medium text-foreground text-xs sm:text-sm">Moderate (50–75%)</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Schedule preventive maintenance
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 rounded-lg bg-status-critical-bg p-3 border border-status-critical/20">
-            <div className="h-3 w-3 rounded-full bg-status-critical" />
+            <div className="h-3 w-3 rounded-full bg-status-critical shrink-0" />
             <div>
-              <p className="font-medium text-foreground">Critical (0–50%)</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="font-medium text-foreground text-xs sm:text-sm">Critical (0–50%)</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Immediate attention required
               </p>
             </div>

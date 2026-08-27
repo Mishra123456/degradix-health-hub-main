@@ -87,15 +87,15 @@ export default function ReliabilityPage() {
         />
       </PageHeader>
 
-      <div className="grid gap-6 lg:grid-cols-3 mb-8">
-        <div className="dashboard-card flex flex-col items-center py-8">
-          <h2 className="text-lg font-semibold mb-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 sm:mb-8">
+        <div className="dashboard-card flex flex-col items-center justify-center py-6 sm:py-8">
+          <h2 className="text-base sm:text-lg font-semibold mb-3">
             Engine {selectedMachine}
           </h2>
           <ReliabilityGauge value={pct(latest?.reliability)} size="lg" />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:col-span-2">
           <MetricCard
             title="Current Reliability"
             value={`${pct(latest?.reliability).toFixed(1)}%`}
@@ -120,21 +120,26 @@ export default function ReliabilityPage() {
       </div>
 
       <div className="dashboard-card">
-        {machineIds.map((id) => {
-          const last = reliabilityData
-            .filter((d) => d.engine_id === id)
-            .slice(-1)[0];
+        <h3 className="text-sm sm:text-base font-semibold text-foreground mb-4">
+          Fleet Machine Reliability Overview
+        </h3>
+        <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+          {machineIds.map((id) => {
+            const last = reliabilityData
+              .filter((d) => d.engine_id === id)
+              .slice(-1)[0];
 
-          return (
-            <div key={id} className="mb-3">
-              <div className="flex justify-between text-sm">
-                <span>Engine {id}</span>
-                <span>{pct(last?.reliability).toFixed(1)}%</span>
+            return (
+              <div key={id} className="p-2 rounded-lg hover:bg-muted/30 transition-colors">
+                <div className="flex justify-between text-xs sm:text-sm font-medium mb-1.5">
+                  <span className="text-foreground">Engine {id}</span>
+                  <span className="text-muted-foreground">{pct(last?.reliability).toFixed(1)}%</span>
+                </div>
+                <Progress value={pct(last?.reliability)} className="h-2" />
               </div>
-              <Progress value={pct(last?.reliability)} className="h-2" />
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </MainLayout>
   );

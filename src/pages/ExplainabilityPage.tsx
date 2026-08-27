@@ -153,7 +153,7 @@ export default function ExplainabilityPage() {
       </PageHeader>
 
       {/* SHAP KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Explainability Core"
           value="TreeSHAP"
@@ -180,26 +180,26 @@ export default function ExplainabilityPage() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 sm:mb-8">
         {/* Global Feature Importance Card */}
         <div className="dashboard-card">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Global Feature Importance</h2>
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">Global Feature Importance</h2>
             <Info className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-xs text-muted-foreground mb-6">
+          <p className="text-xs text-muted-foreground mb-4 sm:mb-6">
             Average absolute SHAP values across the dataset showing overall sensor influence on the model.
           </p>
-          <div className="h-[350px] w-full">
+          <div className="h-[280px] sm:h-[350px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={GLOBAL_IMPORTANCE}
                 layout="vertical"
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
-                <XAxis type="number" tickLine={false} axisLine={false} />
-                <YAxis dataKey="sensor" type="category" tickLine={false} axisLine={false} />
+                <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
+                <YAxis dataKey="sensor" type="category" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} width={65} />
                 <Tooltip 
                   cursor={{ fill: "transparent" }}
                   content={({ active, payload }) => {
@@ -227,33 +227,33 @@ export default function ExplainabilityPage() {
         {/* Local SHAP Explanations Overview */}
         <div className="dashboard-card flex flex-col justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-foreground mb-4">Local Explanation Summary</h2>
-            <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4">Local Explanation Summary</h2>
+            <p className="text-xs text-muted-foreground mb-4 sm:mb-6 leading-relaxed">
               Every machine prediction is a combination of baseline (average) parameters shifted by local sensor observations. SHAP values quantitatively measure how much each sensor pushed the model away from that baseline:
             </p>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="p-3 bg-muted/50 rounded-xl border border-border/40">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1.5">
-                  <span className="h-2 w-2 rounded-full bg-status-healthy" />
+                <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                  <span className="h-2 w-2 rounded-full bg-status-healthy shrink-0" />
                   Health Index Attribution
                 </h4>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
                   Positive impact increases predicted health index score towards 1.0 (indicating better status), whereas negative values show sensors pulling the health rating down.
                 </p>
               </div>
 
               <div className="p-3 bg-muted/50 rounded-xl border border-border/40">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-1.5">
-                  <span className="h-2 w-2 rounded-full bg-status-moderate" />
+                <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2 mb-1">
+                  <span className="h-2 w-2 rounded-full bg-status-moderate shrink-0" />
                   RUL Cycle Attribution
                 </h4>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
                   SHAP values represent the absolute contribution in cycles. For example, a sensor impact of -15.4 cycles signifies that this sensor's value shortened the predicted machine lifespan by 15.4 cycles.
                 </p>
               </div>
             </div>
           </div>
-          <div className="text-xs text-muted-foreground border-t border-border/50 pt-4 mt-6">
+          <div className="text-[11px] sm:text-xs text-muted-foreground border-t border-border/50 pt-4 mt-6">
             Use the machine selector in the header to change the engine and recalculate attributions.
           </div>
         </div>
@@ -261,28 +261,28 @@ export default function ExplainabilityPage() {
 
       {/* Local Bar Charts */}
       {loading ? (
-        <div className="flex items-center justify-center min-h-[300px]">
-          <span className="text-sm text-muted-foreground animate-pulse">Calculating SHAP explanations...</span>
+        <div className="flex items-center justify-center min-h-[250px]">
+          <span className="text-xs sm:text-sm text-muted-foreground animate-pulse">Calculating SHAP explanations...</span>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Health explanations */}
           <div className="dashboard-card">
-            <h3 className="text-md font-semibold text-foreground mb-1">Top Sensors Affecting Health</h3>
-            <p className="text-xs text-muted-foreground mb-6">
+            <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">Top Sensors Affecting Health</h3>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mb-4 sm:mb-6">
               Positive contribution increases health index, negative decreases health index.
             </p>
             {healthChartData.length > 0 ? (
-              <div className="h-[300px]">
+              <div className="h-[260px] sm:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={healthChartData}
                     layout="vertical"
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
-                    <XAxis type="number" tickLine={false} axisLine={false} />
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+                    <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
+                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} width={65} />
                     <ReferenceLine x={0} stroke="#666" />
                     <Tooltip
                       content={({ active, payload }) => {
@@ -312,7 +312,7 @@ export default function ExplainabilityPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-xs text-muted-foreground">
+              <div className="flex items-center justify-center h-[260px] sm:h-[300px] text-xs text-muted-foreground">
                 No explanation data available.
               </div>
             )}
@@ -320,21 +320,21 @@ export default function ExplainabilityPage() {
 
           {/* RUL explanations */}
           <div className="dashboard-card">
-            <h3 className="text-md font-semibold text-foreground mb-1">Top Sensors Affecting RUL</h3>
-            <p className="text-xs text-muted-foreground mb-6">
+            <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">Top Sensors Affecting RUL</h3>
+            <p className="text-[11px] sm:text-xs text-muted-foreground mb-4 sm:mb-6">
               Influence on estimated remaining useful life (cycles).
             </p>
             {rulChartData.length > 0 ? (
-              <div className="h-[300px]">
+              <div className="h-[260px] sm:h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={rulChartData}
                     layout="vertical"
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    margin={{ top: 5, right: 15, left: 0, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
-                    <XAxis type="number" tickLine={false} axisLine={false} />
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+                    <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} />
+                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} tick={{ fontSize: 10 }} width={65} />
                     <ReferenceLine x={0} stroke="#666" />
                     <Tooltip
                       content={({ active, payload }) => {
@@ -364,7 +364,7 @@ export default function ExplainabilityPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-[300px] text-xs text-muted-foreground">
+              <div className="flex items-center justify-center h-[260px] sm:h-[300px] text-xs text-muted-foreground">
                 No explanation data available.
               </div>
             )}

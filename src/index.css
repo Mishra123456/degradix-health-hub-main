@@ -150,22 +150,22 @@
 
   /* Dashboard Card */
   .dashboard-card {
-    @apply bg-card rounded-xl border border-border p-6;
+    @apply bg-card rounded-xl border border-border p-4 sm:p-6 transition-all;
     box-shadow: var(--shadow-card);
   }
 
   /* Metric Display */
   .metric-value {
-    @apply text-3xl font-bold tracking-tight text-foreground;
+    @apply text-2xl sm:text-3xl font-bold tracking-tight text-foreground;
   }
 
   .metric-label {
-    @apply text-sm font-medium text-muted-foreground uppercase tracking-wide;
+    @apply text-xs sm:text-sm font-medium text-muted-foreground uppercase tracking-wide;
   }
 
   /* Chart Container */
   .chart-container {
-    @apply w-full h-[300px];
+    @apply w-full h-[260px] sm:h-[300px] min-h-[240px];
   }
 }
 

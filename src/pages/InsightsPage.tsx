@@ -171,7 +171,7 @@ export default function InsightsPage() {
       />
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Fleet Health"
           value={`${(fleetAvgHealth * 100).toFixed(1)}%`}
@@ -181,7 +181,7 @@ export default function InsightsPage() {
 
         <MetricCard
           title="Worst Machine"
-          value={`Engine ${backendInsight?.worst_engine}`}
+          value={`Engine ${backendInsight?.worst_engine ?? "N/A"}`}
           subtitle={`Health: ${(
             (backendInsight?.lowest_health || 0) * 100
           ).toFixed(1)}%`}
@@ -190,8 +190,8 @@ export default function InsightsPage() {
 
         <MetricCard
           title="Fastest Degrader"
-          value={`Engine ${fastestDegrader?.engine}`}
-          subtitle={`Avg DSI: ${fastestDegrader?.avgDsi.toFixed(3)}`}
+          value={`Engine ${fastestDegrader?.engine ?? "N/A"}`}
+          subtitle={`Avg DSI: ${fastestDegrader?.avgDsi.toFixed(3) ?? "0.000"}`}
           icon={TrendingDown}
         />
 
@@ -204,25 +204,25 @@ export default function InsightsPage() {
       </div>
 
       {/* Priority & Positive Insights */}
-      <div className="grid gap-6 lg:grid-cols-2 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 sm:mb-8">
         {/* Priority Actions */}
         <div className="dashboard-card">
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="h-6 w-6 text-status-critical" />
-            <h2 className="text-lg font-semibold text-foreground">
+            <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-status-critical shrink-0" />
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               Priority Actions
             </h2>
           </div>
 
           <div className="space-y-3">
             {machinesCritical > 0 && (
-              <div className="flex items-start gap-3 rounded-lg bg-status-critical-bg/50 p-3">
-                <AlertTriangle className="h-5 w-5 text-status-critical" />
+              <div className="flex items-start gap-3 rounded-lg bg-status-critical-bg/50 p-3 border border-status-critical/10">
+                <AlertTriangle className="h-5 w-5 text-status-critical shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground">
+                  <p className="font-medium text-foreground text-xs sm:text-sm">
                     {machinesCritical} machine(s) in critical condition
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">
                     Immediate inspection recommended
                   </p>
                 </div>
@@ -230,13 +230,13 @@ export default function InsightsPage() {
             )}
 
             {fastDegraders.length > 0 && (
-              <div className="flex items-start gap-3 rounded-lg bg-status-moderate-bg/50 p-3">
-                <TrendingDown className="h-5 w-5 text-status-moderate" />
+              <div className="flex items-start gap-3 rounded-lg bg-status-moderate-bg/50 p-3 border border-status-moderate/10">
+                <TrendingDown className="h-5 w-5 text-status-moderate shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground">
+                  <p className="font-medium text-foreground text-xs sm:text-sm">
                     {fastDegraders.length} fast degrading machine(s)
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[11px] sm:text-xs text-muted-foreground break-words">
                     Engines: {fastDegraders.map((d) => d.engine_id).join(", ")}
                   </p>
                 </div>
@@ -244,17 +244,23 @@ export default function InsightsPage() {
             )}
 
             {machinesModerate > 0 && (
-              <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3">
-                <Wrench className="h-5 w-5 text-muted-foreground" />
+              <div className="flex items-start gap-3 rounded-lg bg-muted/50 p-3 border border-border/30">
+                <Wrench className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground">
+                  <p className="font-medium text-foreground text-xs sm:text-sm">
                     {machinesModerate} machine(s) need preventive maintenance
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">
                     Schedule maintenance soon
                   </p>
                 </div>
               </div>
+            )}
+
+            {machinesCritical === 0 && fastDegraders.length === 0 && machinesModerate === 0 && (
+              <p className="text-xs sm:text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg">
+                No urgent priority action needed. All fleet units are stable.
+              </p>
             )}
           </div>
         </div>
@@ -262,21 +268,21 @@ export default function InsightsPage() {
         {/* Positive Indicators */}
         <div className="dashboard-card">
           <div className="flex items-center gap-3 mb-4">
-            <CheckCircle2 className="h-6 w-6 text-status-healthy" />
-            <h2 className="text-lg font-semibold text-foreground">
+            <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-status-healthy shrink-0" />
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               Positive Indicators
             </h2>
           </div>
 
           <div className="space-y-3">
             {machinesHealthy > 0 && (
-              <div className="flex items-start gap-3 rounded-lg bg-status-healthy-bg/50 p-3">
-                <CheckCircle2 className="h-5 w-5 text-status-healthy" />
+              <div className="flex items-start gap-3 rounded-lg bg-status-healthy-bg/50 p-3 border border-status-healthy/10">
+                <CheckCircle2 className="h-5 w-5 text-status-healthy shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground">
+                  <p className="font-medium text-foreground text-xs sm:text-sm">
                     {machinesHealthy} machine(s) operating optimally
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">
                     No immediate maintenance required
                   </p>
                 </div>
@@ -284,13 +290,13 @@ export default function InsightsPage() {
             )}
 
             {fleetAvgHealth > 0.7 && (
-              <div className="flex items-start gap-3 rounded-lg bg-accent/50 p-3">
-                <BarChart3 className="h-5 w-5 text-accent-foreground" />
+              <div className="flex items-start gap-3 rounded-lg bg-accent/50 p-3 border border-border/30">
+                <BarChart3 className="h-5 w-5 text-accent-foreground shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-foreground">
+                  <p className="font-medium text-foreground text-xs sm:text-sm">
                     Fleet health above threshold
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-[11px] sm:text-xs text-muted-foreground">
                     Strong overall maintenance performance
                   </p>
                 </div>
@@ -302,72 +308,74 @@ export default function InsightsPage() {
 
       {/* Fleet Status Table */}
       <div className="dashboard-card">
-        <div className="flex items-center gap-3 mb-6">
-          <Lightbulb className="h-6 w-6 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">
+        <div className="flex items-center gap-3 mb-4 sm:mb-6">
+          <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">
             Fleet Status Summary
           </h2>
         </div>
 
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="pb-3 text-left text-sm font-semibold text-foreground">
-                Engine ID
-              </th>
-              <th className="pb-3 text-left text-sm font-semibold text-foreground">
-                Health
-              </th>
-              <th className="pb-3 text-left text-sm font-semibold text-foreground">
-                Status
-              </th>
-              <th className="pb-3 text-left text-sm font-semibold text-foreground">
-                Cluster
-              </th>
-              <th className="pb-3 text-left text-sm font-semibold text-foreground">
-                Recommendation
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {latestHealthByEngine.map((d) => {
-              const status =
-                d.health >= 0.75
-                  ? "healthy"
-                  : d.health >= 0.5
-                  ? "moderate"
-                  : "critical";
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <table className="w-full min-w-[620px]">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="pb-3 text-left text-xs sm:text-sm font-semibold text-foreground">
+                  Engine ID
+                </th>
+                <th className="pb-3 text-left text-xs sm:text-sm font-semibold text-foreground">
+                  Health
+                </th>
+                <th className="pb-3 text-left text-xs sm:text-sm font-semibold text-foreground">
+                  Status
+                </th>
+                <th className="pb-3 text-left text-xs sm:text-sm font-semibold text-foreground">
+                  Cluster
+                </th>
+                <th className="pb-3 text-left text-xs sm:text-sm font-semibold text-foreground">
+                  Recommendation
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {latestHealthByEngine.map((d) => {
+                const status =
+                  d.health >= 0.75
+                    ? "healthy"
+                    : d.health >= 0.5
+                    ? "moderate"
+                    : "critical";
 
-              const cluster = labeledClusters.find(
-                (c) => c.engine_id === d.engine_id
-              );
+                const cluster = labeledClusters.find(
+                  (c) => c.engine_id === d.engine_id
+                );
 
-              return (
-                <tr key={d.engine_id}>
-                  <td className="py-3 text-sm font-medium text-foreground">
-                    Engine {d.engine_id}
-                  </td>
-                  <td className="py-3 text-sm text-foreground">
-                    {(d.health * 100).toFixed(1)}%
-                  </td>
-                  <td className="py-3">
-                    <StatusBadge status={status} />
-                  </td>
-                  <td className="py-3 text-sm text-muted-foreground capitalize">
-                    {cluster?.cluster || "N/A"} degrader
-                  </td>
-                  <td className="py-3 text-sm text-muted-foreground">
-                    {status === "critical"
-                      ? "Immediate inspection required"
-                      : status === "moderate"
-                      ? "Schedule preventive maintenance"
-                      : "Continue monitoring"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                return (
+                  <tr key={d.engine_id} className="hover:bg-muted/20 transition-colors">
+                    <td className="py-3 text-xs sm:text-sm font-medium text-foreground">
+                      Engine {d.engine_id}
+                    </td>
+                    <td className="py-3 text-xs sm:text-sm text-foreground font-mono">
+                      {(d.health * 100).toFixed(1)}%
+                    </td>
+                    <td className="py-3">
+                      <StatusBadge status={status} />
+                    </td>
+                    <td className="py-3 text-xs sm:text-sm text-muted-foreground capitalize">
+                      {cluster?.cluster || "N/A"} degrader
+                    </td>
+                    <td className="py-3 text-xs sm:text-sm text-muted-foreground">
+                      {status === "critical"
+                        ? "Immediate inspection required"
+                        : status === "moderate"
+                        ? "Schedule preventive maintenance"
+                        : "Continue monitoring"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </MainLayout>
   );

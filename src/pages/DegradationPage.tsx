@@ -123,7 +123,7 @@ export default function DegradationPage() {
       </PageHeader>
 
       {/* Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Current DSI"
           value={latestData?.DSI.toFixed(3) || "0.000"}
@@ -155,9 +155,9 @@ export default function DegradationPage() {
 
       {/* Chart */}
       <div className="dashboard-card mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               DSI vs Time for Engine {selectedMachine}
             </h2>
             <Tooltip>
@@ -173,7 +173,7 @@ export default function DegradationPage() {
             </Tooltip>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <Switch
               id="show-average"
               checked={showAverage}
@@ -181,7 +181,7 @@ export default function DegradationPage() {
             />
             <Label
               htmlFor="show-average"
-              className="text-sm text-muted-foreground"
+              className="text-xs sm:text-sm text-muted-foreground cursor-pointer"
             >
               Show Fleet Average
             </Label>

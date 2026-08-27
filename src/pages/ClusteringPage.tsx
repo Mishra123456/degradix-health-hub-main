@@ -112,7 +112,7 @@ export default function ClusteringPage() {
       />
 
       {/* Cluster Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 sm:mb-8">
         <MetricCard
           title="Total Machines"
           value={labeledClusters.length}
@@ -173,9 +173,9 @@ export default function ClusteringPage() {
 
       {/* Cluster Visualization */}
       <div className="dashboard-card mb-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">
               Cluster Visualization
             </h2>
             <Tooltip>
@@ -197,7 +197,7 @@ export default function ClusteringPage() {
       </div>
 
       {/* Cluster Details */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {["slow", "moderate", "fast"].map((label) => (
           <div
             key={label}
@@ -209,10 +209,10 @@ export default function ClusteringPage() {
                 : "border-l-status-critical"
             }`}
           >
-            <h3 className="font-semibold text-foreground mb-2 capitalize">
+            <h3 className="font-semibold text-foreground mb-2 capitalize text-sm sm:text-base">
               {label} Degraders
             </h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-xs sm:text-sm text-muted-foreground mb-4">
               {label === "slow"
                 ? "Machines with slower health decline"
                 : label === "moderate"
@@ -220,13 +220,13 @@ export default function ClusteringPage() {
                 : "Rapid health decline, immediate attention required"}
             </p>
 
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {labeledClusters
                 .filter((d) => d.cluster === label)
                 .map((d) => (
                   <div
                     key={d.machine_id}
-                    className="flex items-center justify-between text-sm"
+                    className="flex items-center justify-between text-xs sm:text-sm py-1 border-b border-border/30 last:border-0"
                   >
                     <span className="font-medium text-foreground">
                       Engine {d.machine_id}

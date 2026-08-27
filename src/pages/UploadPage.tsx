@@ -41,10 +41,10 @@ export default function UploadPage() {
         description="Upload CSV files containing machine sensor readings for analysis"
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upload Section */}
         <div className="dashboard-card">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">
             Upload CSV File
           </h2>
           <FileUpload onUpload={handleUpload} isLoading={isLoading} />
@@ -52,41 +52,41 @@ export default function UploadPage() {
 
         {/* Instructions */}
         <div className="dashboard-card">
-          <h2 className="text-lg font-semibold text-foreground mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">
             Data Requirements
           </h2>
 
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
                 <FileText className="h-4 w-4 text-accent-foreground" />
               </div>
-              <div>
-                <p className="font-medium text-foreground">CSV Format</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <p className="font-medium text-foreground text-sm sm:text-base">CSV Format</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   File must be in comma-separated values format with headers
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
                 <Database className="h-4 w-4 text-accent-foreground" />
               </div>
-              <div>
-                <p className="font-medium text-foreground">Required Columns</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <p className="font-medium text-foreground text-sm sm:text-base">Required Columns</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   engine_id, cycle, and at least one sensor column (sensor_1,
                   sensor_2, etc.)
                 </p>
               </div>
             </div>
 
-            <div className="mt-6 rounded-lg bg-muted p-4">
-              <p className="text-sm font-medium text-foreground mb-2">
+            <div className="mt-6 rounded-lg bg-muted p-3 sm:p-4">
+              <p className="text-xs sm:text-sm font-medium text-foreground mb-2">
                 Example Data:
               </p>
-              <pre className="text-xs text-muted-foreground font-mono overflow-x-auto">
+              <pre className="text-[11px] sm:text-xs text-muted-foreground font-mono overflow-x-auto p-1 max-w-full">
                 {`engine_id,cycle,sensor_1,sensor_2,sensor_3
 1,1,518.67,642.35,1589.70
 1,2,518.67,642.35,1591.82
@@ -100,20 +100,22 @@ export default function UploadPage() {
         {/* Upload History */}
         {uploadedFiles.length > 0 && (
           <div className="lg:col-span-2 dashboard-card">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4">
               Uploaded Files
             </h2>
             <div className="space-y-2">
               {uploadedFiles.map((fileName, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 rounded-lg bg-muted/50 p-3"
+                  className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 rounded-lg bg-muted/50 p-3"
                 >
-                  <CheckCircle2 className="h-5 w-5 text-status-healthy" />
-                  <span className="font-medium text-foreground">
-                    {fileName}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <CheckCircle2 className="h-5 w-5 text-status-healthy shrink-0" />
+                    <span className="font-medium text-foreground text-sm truncate">
+                      {fileName}
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm text-muted-foreground shrink-0">
                     Processed successfully
                   </span>
                 </div>
