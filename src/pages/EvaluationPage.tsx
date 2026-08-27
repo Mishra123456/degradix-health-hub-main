@@ -21,11 +21,16 @@ type EvaluationMetrics = {
   rf_health: ModelMetrics;
   rf_rul: ModelMetrics;
   lstm_rul: ModelMetrics;
+  dataset_evaluated?: boolean;
+  engine_count?: number;
+  total_rows?: number;
 };
 
 export default function EvaluationPage() {
   const { file } = useAppData();
   const [metrics, setMetrics] = useState<EvaluationMetrics | null>(null);
+  const [benchmarkMetrics, setBenchmarkMetrics] = useState<EvaluationMetrics | null>(null);
+  const [showBenchmark, setShowBenchmark] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,18 +40,27 @@ export default function EvaluationPage() {
       return;
     }
     setIsLoading(true);
-    api.metrics()
+
+    // Fetch live dataset evaluation
+    api.evaluateDataset(file)
       .then((data) => {
         setMetrics(data);
         setError(null);
       })
       .catch((err) => {
-        console.error("Failed to load metrics:", err);
-        setError("Could not retrieve model performance metrics from backend.");
+        console.warn("Live dataset evaluation failed, falling back to benchmark metrics:", err);
+        // Fallback to static benchmark metrics
+        api.metrics().then(setMetrics).catch((fallbackErr) => {
+          console.error("Failed to load benchmark metrics:", fallbackErr);
+          setError("Could not retrieve model performance metrics from backend.");
+        });
       })
       .finally(() => {
         setIsLoading(false);
       });
+
+    // Also fetch baseline benchmark metrics for comparison
+    api.metrics().then(setBenchmarkMetrics).catch(() => {});
   }, [file]);
 
   if (!file) {
@@ -62,7 +76,7 @@ export default function EvaluationPage() {
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-3">No Evaluation Data</h2>
           <p className="text-muted-foreground text-xs sm:text-sm max-w-md mb-8 leading-relaxed">
-            Upload your machine sensor dataset first. Model performance metrics (MAE, RMSE, R²) and SHAP-based sensor rankings will be computed once the data is processed.
+            Upload your machine sensor dataset first. Model performance metrics (MAE, RMSE, R²) and SHAP-based sensor rankings will be dynamically computed once the data is processed.
           </p>
           <Link
             to="/upload"
@@ -75,6 +89,8 @@ export default function EvaluationPage() {
     );
   }
 
+  const activeMetrics = showBenchmark && benchmarkMetrics ? benchmarkMetrics : metrics;
+
   return (
     <MainLayout>
       <PageHeader
@@ -85,15 +101,41 @@ export default function EvaluationPage() {
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <span className="ml-3 text-muted-foreground font-medium">Loading evaluation metrics...</span>
+          <span className="ml-3 text-muted-foreground font-medium">Evaluating models on uploaded dataset...</span>
         </div>
-      ) : error || !metrics ? (
+      ) : error || !activeMetrics ? (
         <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-destructive mb-6">
           <p className="font-semibold">Error Loading Metrics</p>
           <p className="text-sm">{error || "No metrics data available."}</p>
         </div>
       ) : (
         <div className="space-y-6 sm:space-y-8">
+          {/* Dynamic Evaluation Banner & Toggle */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border/60 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="h-3 w-3 rounded-full bg-status-healthy animate-ping shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  {showBenchmark ? "Benchmark Reference Standards (NASA C-MAPSS FD001)" : "Live Dataset Evaluation"}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {showBenchmark
+                    ? "Pre-trained test suite benchmark performance metrics."
+                    : `Dynamically evaluated on '${file.name}' (${metrics?.engine_count ?? 0} engines, ${metrics?.total_rows ?? 0} sensor readings).`}
+                </p>
+              </div>
+            </div>
+
+            {benchmarkMetrics && (
+              <button
+                onClick={() => setShowBenchmark(!showBenchmark)}
+                className="inline-flex items-center justify-center rounded-lg border border-border bg-muted/50 px-3.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted shrink-0"
+              >
+                {showBenchmark ? "← View Uploaded Dataset Evaluation" : "Compare with C-MAPSS Benchmark →"}
+              </button>
+            )}
+          </div>
+
           {/* Overview Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* RF Health Model Card */}
@@ -121,7 +163,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Mean Absolute Error: Lower is better.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.rf_health.mae.toFixed(4)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.rf_health.mae.toFixed(4)}</p>
                 </div>
                 <div className="text-center border-x border-border/50">
                   <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
@@ -131,7 +173,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Root Mean Squared Error: Penalizes larger errors. Lower is better.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.rf_health.rmse.toFixed(4)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.rf_health.rmse.toFixed(4)}</p>
                 </div>
                 <div className="text-center">
                   <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
@@ -141,7 +183,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Coefficient of determination: Closer to 1.0 is better.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.rf_health.r2.toFixed(4)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.rf_health.r2.toFixed(4)}</p>
                 </div>
               </div>
             </div>
@@ -171,7 +213,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Average error in predicted remaining cycles.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.rf_rul.mae.toFixed(1)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.rf_rul.mae.toFixed(1)}</p>
                 </div>
                 <div className="text-center border-x border-border/50">
                   <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
@@ -181,7 +223,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Root Mean Squared Error for predicted cycles.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.rf_rul.rmse.toFixed(1)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.rf_rul.rmse.toFixed(1)}</p>
                 </div>
                 <div className="text-center">
                   <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
@@ -191,7 +233,7 @@ export default function EvaluationPage() {
                       <TooltipContent>R2 regression score. Proportion of variance explained.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.rf_rul.r2.toFixed(3)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.rf_rul.r2.toFixed(3)}</p>
                 </div>
               </div>
             </div>
@@ -221,7 +263,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Average error in predicted remaining cycles (sequence based).</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.lstm_rul.mae.toFixed(1)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.lstm_rul.mae.toFixed(1)}</p>
                 </div>
                 <div className="text-center border-x border-border/50">
                   <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
@@ -231,7 +273,7 @@ export default function EvaluationPage() {
                       <TooltipContent>Root Mean Squared Error of sequence forecasting.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.lstm_rul.rmse.toFixed(1)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.lstm_rul.rmse.toFixed(1)}</p>
                 </div>
                 <div className="text-center">
                   <span className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider flex items-center justify-center gap-1">
@@ -241,7 +283,7 @@ export default function EvaluationPage() {
                       <TooltipContent>R2 score for sequence model. Higher is better.</TooltipContent>
                     </Tooltip>
                   </span>
-                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{metrics.lstm_rul.r2.toFixed(3)}</p>
+                  <p className="text-sm sm:text-lg font-bold text-foreground mt-1 font-mono">{activeMetrics.lstm_rul.r2.toFixed(3)}</p>
                 </div>
               </div>
             </div>

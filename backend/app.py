@@ -557,6 +557,86 @@ async def explain(file: UploadFile = File(...), engine_id: int = None):
         rul_explanation=rul_exp
     )
 
+def evaluate_dataset_metrics(df: pd.DataFrame) -> dict:
+    verify_models_loaded()
+    sensors = sensor_columns(df)
+    
+    # Sort dataset
+    df = df.sort_values(["engine_id", "cycle"]).reset_index(drop=True)
+    
+    # Calculate ground truth RUL & Health for run-to-failure engines
+    max_cycles = df.groupby("engine_id")["cycle"].transform("max")
+    
+    # Ground truth
+    true_rul = np.minimum(125.0, (max_cycles - df["cycle"]).values.astype(float))
+    true_health = np.clip(1.0 - (df["cycle"] / max_cycles).values, 0.0, 1.0)
+    
+    # Model predictions
+    X_scaled = scaler.transform(df[sensors].values)
+    
+    # 1. RF Health predictions
+    pred_rf_health = np.clip(rf_health.predict(X_scaled), 0.0, 1.0)
+    
+    # 2. RF RUL predictions
+    pred_rf_rul = rf_rul.predict(X_scaled)
+    
+    # 3. LSTM RUL predictions
+    pred_lstm_rul = []
+    df_scaled = df.copy()
+    df_scaled[sensors] = X_scaled
+    
+    for engine_id, group in df_scaled.groupby("engine_id"):
+        group = group.sort_values("cycle")
+        group_sensors = group[sensors].values
+        group_cycles = group["cycle"].values
+        
+        for idx in range(len(group)):
+            cycle = int(group_cycles[idx])
+            if cycle > SEQ_LEN:
+                seq_hist = group_sensors[idx - SEQ_LEN:idx]
+                if HF_MODEL_ID:
+                    rul_val = query_hf_lstm(seq_hist)
+                    if rul_val is None:
+                        rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, None, None)
+                else:
+                    rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, lstm_model, seq_hist)
+            else:
+                rul_val = calculate_rul(group_sensors[idx:idx+1], rf_rul, None, None)
+            pred_lstm_rul.append(rul_val)
+            
+    pred_lstm_rul = np.array(pred_lstm_rul)
+    
+    # Helper for metrics calculation
+    def calc_stats(y_true, y_pred):
+        mae = float(np.mean(np.abs(y_true - y_pred)))
+        rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
+        ss_res = np.sum((y_true - y_pred) ** 2)
+        ss_tot = np.sum((y_true - np.mean(y_true)) ** 2)
+        r2 = float(1.0 - (ss_res / (ss_tot + 1e-8)))
+        return {
+            "mae": round(mae, 4),
+            "rmse": round(rmse, 4),
+            "r2": round(max(-1.0, min(1.0, r2)), 4)
+        }
+        
+    return {
+        "dataset_evaluated": True,
+        "engine_count": int(df["engine_id"].nunique()),
+        "total_rows": int(len(df)),
+        "rf_health": calc_stats(true_health, pred_rf_health),
+        "rf_rul": calc_stats(true_rul, pred_rf_rul),
+        "lstm_rul": calc_stats(true_rul, pred_lstm_rul)
+    }
+
+@app.post("/evaluate-dataset")
+async def evaluate_dataset(file: UploadFile = File(...)):
+    """
+    Dynamically computes MAE, RMSE, and R2 evaluation metrics for RF Health,
+    RF RUL, and LSTM RUL models on the uploaded CSV dataset.
+    """
+    df = load_csv(file)
+    return evaluate_dataset_metrics(df)
+
 @app.get("/metrics", response_model=SystemMetricsResponse)
 def get_metrics():
     """

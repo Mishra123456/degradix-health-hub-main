@@ -47,6 +47,7 @@ export const api = {
   predictHealth: (file: File) => postFile("/predict-health", file),
   predictComplete: (file: File, engineId?: number) => postFile("/predict-complete", file, engineId),
   explain: (file: File, engineId?: number) => postFile("/explain", file, engineId),
+  evaluateDataset: (file: File) => postFile("/evaluate-dataset", file),
   metrics: async () => {
     const res = await fetch(`${BASE_URL}/metrics`);
     if (!res.ok) throw new Error("API request failed");
