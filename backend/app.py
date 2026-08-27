@@ -127,17 +127,21 @@ ALLOWED_ORIGINS = [
     "http://localhost:8081",
     "http://127.0.0.1:8081",
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "https://degradix-health-hub-main.vercel.app",
 ]
 
 _vercel_url = os.environ.get("FRONTEND_URL")
 if _vercel_url:
-    ALLOWED_ORIGINS.append(_vercel_url.rstrip("/"))
-else:
-    ALLOWED_ORIGINS = ["*"]
+    clean_url = _vercel_url.rstrip("/")
+    if clean_url not in ALLOWED_ORIGINS:
+        ALLOWED_ORIGINS.append(clean_url)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
